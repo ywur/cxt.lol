@@ -580,6 +580,15 @@
           <div class="hint" style="margin-top:.5rem;">Set both to 0 to make your whole profile fully see-through — no card frame, no widget frames.</div>
         </div>
         <div class="panel">
+          <div class="field-label">Enter screen</div>
+          <div class="hint" style="margin-bottom:.4rem;">A full-screen "click to enter" gate. Visitors must click to get in, and their music starts as soon as they do.</div>
+          <div class="toggle-row"><div><div class="t-name">Click-to-enter gate</div><div class="t-desc">Show an enter screen before the profile</div></div><label class="switch"><input type="checkbox" data-bind="c.enter_gate"><span class="sl"></span></label></div>
+          <div class="field-row" style="margin-top:.6rem;">
+            <div class="field-label">Enter button label</div>
+            <input class="field-input" data-bind="c.enter_label" maxlength="40" placeholder="click to enter">
+          </div>
+        </div>
+        <div class="panel">
           <div class="field-label">Themes</div>
           <div class="themes-grid" id="themes-grid"></div>
           <div class="hint" style="margin-top:.6rem;">One-click combos of accent, background and card style.</div>
