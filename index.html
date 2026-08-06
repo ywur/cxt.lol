@@ -52,8 +52,9 @@
   .profiles-strip{position:relative;z-index:1;padding:4rem 1.5rem;text-align:center;}
   .strip-label{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.14em;color:var(--muted);margin-bottom:2rem;}
   .profiles-scroll{display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;}
-  .profile-pill{padding:0.35rem 0.9rem;border:1px solid var(--border);border-radius:99px;font-size:0.75rem;color:var(--muted);transition:all 0.2s;}
+  .profile-pill{padding:0.35rem 0.9rem;border:1px solid var(--border);border-radius:99px;font-size:0.75rem;color:var(--muted);transition:all 0.2s;display:inline-flex;align-items:center;gap:.45rem;}
   .profile-pill:hover{border-color:rgba(255,255,255,0.25);color:var(--fg);}
+  .profile-pill img{width:18px;height:18px;border-radius:50%;object-fit:cover;border:1px solid var(--border);}
 
   footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:1.8rem 2.5rem;display:flex;align-items:center;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.2);}
   footer a{color:inherit;text-decoration:none;}footer a:hover{color:var(--fg);}
@@ -120,7 +121,7 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
       </div>
       <div class="feat-title">Full customization</div>
-      <div class="feat-desc">Change your bio, avatar, banner, and layout from the dashboard.</div>
+      <div class="feat-desc">Custom buttons, badges, fonts, colors, and CSS — with a live preview in the dashboard.</div>
     </div>
   </div>
 </section>
@@ -133,7 +134,7 @@
 </div>
 
 <footer>
-  <span>cxt © 2025</span>
+  <span>cxt © 2026</span>
   <div style="display:flex;gap:1.5rem;"><a href="#">terms</a><a href="#">privacy</a><a href="dashboard.html">login</a></div>
 </footer>
 
@@ -185,7 +186,7 @@ if(location.protocol==='file:'){
 
 async function loadStats(){
   try{
-    const r=await fetch(`${SUPA_URL}/rest/v1/profiles?select=username,created_at&order=created_at.desc&limit=50`,{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Accept':'application/json'}});
+    const r=await fetch(`${SUPA_URL}/rest/v1/profiles?select=username,avatar_url,created_at&order=created_at.desc&limit=50`,{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Accept':'application/json'}});
     if(!r.ok)throw new Error('Fetch failed');
     const d=await r.json();
     if(Array.isArray(d)){
@@ -196,7 +197,9 @@ async function loadStats(){
       if(d.length===0){strip.innerHTML='<div class="profile-pill">be the first</div>';return;}
       d.forEach(p=>{
         const el=document.createElement('div');
-        el.className='profile-pill';el.textContent=p.username;
+        el.className='profile-pill';
+        const av=p.avatar_url?`<img src="${p.avatar_url}" alt="">`:``;
+        el.innerHTML=av+esc(p.username);
         el.style.cursor='pointer';
         el.addEventListener('click',()=>{const b=location.pathname.replace(/\/?[^/]*$/,'')+'/';window.open(b+p.username,'_blank');});
         strip.appendChild(el);
@@ -211,6 +214,7 @@ async function loadStats(){
     }
   }
 }
+function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
 loadStats();
 </script>
 </body>
