@@ -281,6 +281,8 @@ function mergeCfg(widgetOrder) {
     show_stats: c.show_stats !== false,
     panel_opacity: cxOpacity(c.panel_opacity),
     card_opacity: cxOpacity(c.card_opacity),
+    enter_gate: !!c.enter_gate,
+    enter_label: c.enter_label || '',
     countdown,
     text_widget: textWidget,
     youtube: c.youtube || '',
@@ -310,6 +312,8 @@ function cfgToDB(cfg) {
     show_stats: cfg.show_stats !== false,
     panel_opacity: cfg.panel_opacity == null ? 100 : cfg.panel_opacity,
     card_opacity: cfg.card_opacity == null ? 100 : cfg.card_opacity,
+    enter_gate: !!cfg.enter_gate,
+    enter_label: cfg.enter_label || '',
     countdown: cfg.countdown || { label: '', target: '' },
     text_widget: cfg.text_widget || { title: '', body: '' },
     youtube: cfg.youtube || '',
@@ -675,4 +679,12 @@ function initAudio(data) {
       });
     }
   }, 120);
+  window.__cxUnlock = unlock;
+}
+
+function cxStartMusic() {
+  const ael = document.getElementById('cx-audio');
+  if (!ael || !ael.src) return;
+  if (typeof window.__cxUnlock === 'function') window.__cxUnlock();
+  ael.play().catch(() => {});
 }
