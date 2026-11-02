@@ -1,221 +1,800 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>cxt — claim your page</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap');
-  *{margin:0;padding:0;box-sizing:border-box;}
-  :root{--bg:#000;--fg:#fff;--muted:rgba(255,255,255,0.35);--border:rgba(255,255,255,0.08);--panel:rgba(255,255,255,0.04);}
-  body{background:radial-gradient(ellipse at 50% 20%, rgba(255,255,255,0.04) 0%, transparent 60%),var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-serif;min-height:100vh;overflow-x:hidden;}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>purity · glass profile</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255, 255, 255, 0.75);
+      --text-tertiary: rgba(255, 255, 255, 0.55);
+      --glass-bg: rgba(15, 15, 22, 0.55);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --glass-border-hover: rgba(255, 255, 255, 0.18);
+      --blur: 20px;
+    }
 
-  #rain-canvas{position:fixed;inset:0;pointer-events:none;z-index:0;}
+    /* Modern reset */
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-  nav{position:fixed;top:0;left:0;right:0;z-index:50;padding:1.2rem 2.5rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(0,0,0,0.6);backdrop-filter:blur(20px);}
-  .nav-logo{font-size:1.1rem;font-weight:700;letter-spacing:-0.02em;}
-  .nav-links{display:flex;align-items:center;gap:1.5rem;}
-  .nav-links a{color:var(--muted);text-decoration:none;font-size:0.82rem;font-weight:500;letter-spacing:0.02em;transition:color 0.2s;}
-  .nav-links a:hover{color:var(--fg);}
-  .nav-btn{background:var(--fg);color:#000;padding:0.45rem 1.1rem;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;transition:opacity 0.2s;}
-  .nav-btn:hover{opacity:0.85;}
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      color: var(--text-primary);
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
 
-  .hero{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6rem 1.5rem 4rem;}
-  .hero-eyebrow{font-size:0.72rem;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:1.8rem;}
-  .hero-title{font-size:clamp(3rem,8vw,6.5rem);font-weight:900;letter-spacing:-0.04em;line-height:0.95;margin-bottom:1.5rem;}
-  .hero-title em{font-style:normal;color:var(--muted);}
-  .hero-sub{font-size:1rem;color:var(--muted);max-width:420px;line-height:1.65;margin-bottom:2.8rem;}
+    /* Background video */
+    #bg-video {
+      position: absolute;
+      inset: 50% auto auto 50%;
+      min-width: 100%;
+      min-height: 100%;
+      width: auto;
+      height: auto;
+      transform: translate(-50%, -50%);
+      z-index: 1;
+      object-fit: cover;
+      opacity: 0.95;
+      filter: brightness(0.7) contrast(1.12) saturate(1.08);
+      transition: opacity 1.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
 
-  .claim-box{display:flex;align-items:center;gap:0;border:1px solid rgba(255,255,255,0.18);border-radius:12px;overflow:hidden;background:rgba(255,255,255,0.03);backdrop-filter:blur(10px);max-width:400px;width:100%;}
-  .claim-prefix{padding:0 0.2rem 0 1rem;color:var(--muted);font-size:0.9rem;white-space:nowrap;user-select:none;}
-  .claim-input{flex:1;background:transparent;border:none;outline:none;color:var(--fg);font-size:0.9rem;font-family:inherit;padding:0.85rem 0.5rem;min-width:0;}
-  .claim-input::placeholder{color:rgba(255,255,255,0.18);}
-  .claim-btn{background:var(--fg);color:#000;border:none;padding:0.85rem 1.3rem;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:opacity 0.2s;}
-  .claim-btn:hover{opacity:0.88;}
-  .claim-btn:disabled{opacity:0.3;cursor:not-allowed;}
-  .claim-note{font-size:0.72rem;color:rgba(255,255,255,0.2);margin-top:0.8rem;}
-  .claim-err{font-size:0.72rem;color:#ff6b6b;margin-top:0.5rem;min-height:1em;}
+    /* Cinematic gradient overlay */
+    body::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      background: radial-gradient(circle at 50% 30%, transparent 0%, rgba(0, 0, 0, 0.25) 55%, rgba(0, 0, 0, 0.8) 100%);
+      pointer-events: none;
+    }
 
-  .stats-row{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:4rem;padding:3rem 1.5rem;border-top:1px solid var(--border);}
-  .stat{text-align:center;}
-  .stat-num{font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;}
-  .stat-label{font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-top:0.2rem;}
+    body::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      background: radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.5) 100%);
+      pointer-events: none;
+    }
 
-  .features{position:relative;z-index:1;padding:5rem 1.5rem;max-width:900px;margin:0 auto;}
-  .feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1px;border:1px solid var(--border);}
-  .feat-cell{padding:2rem;border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
-  .feat-cell:nth-child(2n){border-right:none;}
-  .feat-icon{width:32px;height:32px;border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:1rem;opacity:0.6;}
-  .feat-title{font-size:0.9rem;font-weight:600;margin-bottom:0.4rem;}
-  .feat-desc{font-size:0.78rem;color:var(--muted);line-height:1.6;}
+    /* Enter screen */
+    #enter-screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at center, #050505 0%, #000 100%);
+      z-index: 30;
+      cursor: pointer;
+      transition: opacity 1.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
 
-  .profiles-strip{position:relative;z-index:1;padding:4rem 1.5rem;text-align:center;}
-  .strip-label{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.14em;color:var(--muted);margin-bottom:2rem;}
-  .profiles-scroll{display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;}
-  .profile-pill{padding:0.35rem 0.9rem;border:1px solid var(--border);border-radius:99px;font-size:0.75rem;color:var(--muted);transition:all 0.2s;display:inline-flex;align-items:center;gap:.45rem;}
-  .profile-pill:hover{border-color:rgba(255,255,255,0.25);color:var(--fg);}
-  .profile-pill img{width:18px;height:18px;border-radius:50%;object-fit:cover;border:1px solid var(--border);}
+    #enter-screen.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
 
-  footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:1.8rem 2.5rem;display:flex;align-items:center;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.2);}
-  footer a{color:inherit;text-decoration:none;}footer a:hover{color:var(--fg);}
+    .enter-text {
+      font-weight: 300;
+      letter-spacing: 1.8em;
+      text-transform: uppercase;
+      font-size: clamp(0.68rem, 1vw, 0.88rem);
+      color: rgba(255, 255, 255, 0.38);
+      margin-right: -1.8em;
+      animation: breathe 3s ease-in-out infinite;
+    }
 
-  @media(max-width:600px){nav{padding:1rem 1.2rem;}.nav-links{gap:0.8rem;}.stats-row{gap:2rem;}.hero-title{font-size:clamp(2.2rem,12vw,3.5rem);}footer{flex-direction:column;gap:0.6rem;text-align:center;}}
-  @media(max-width:480px){.claim-box{flex-wrap:wrap;}.claim-btn{width:100%;text-align:center;}}
-</style>
+    @keyframes breathe {
+
+      0%,
+      100% {
+        opacity: 0.4;
+        text-shadow: 0 0 0 rgba(255, 255, 255, 0);
+      }
+
+      50% {
+        opacity: 1;
+        text-shadow: 0 0 24px rgba(255, 255, 255, 0.4);
+      }
+    }
+
+    /* Main content */
+    #main-content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1.4s cubic-bezier(0.25, 1, 0.5, 1);
+      padding: 1.5rem;
+    }
+
+    #main-content.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .profile-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: min(340px, 100%);
+      gap: 1rem;
+      filter: drop-shadow(0 60px 100px rgba(0, 0, 0, 0.95));
+      transform: translateY(30px) scale(0.98);
+      transition: transform 1.6s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform;
+    }
+
+    #main-content.show .profile-card {
+      transform: translateY(0) scale(1);
+      animation: float 8s ease-in-out infinite;
+      animation-delay: 1.6s;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0) scale(1);
+      }
+
+      50% {
+        transform: translateY(-6px) scale(1);
+      }
+    }
+
+    /* Avatar */
+    .avatar-wrapper {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .avatar-wrapper::before {
+      content: '';
+      position: absolute;
+      width: 148px;
+      height: 148px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.18) 0%, transparent 72%);
+      filter: blur(22px);
+      animation: pulse-glow 5s ease-in-out infinite;
+    }
+
+    @keyframes pulse-glow {
+
+      0%,
+      100% {
+        opacity: 0.4;
+        transform: scale(0.98);
+      }
+
+      50% {
+        opacity: 0.7;
+        transform: scale(1.02);
+      }
+    }
+
+    .avatar {
+      position: relative;
+      width: 116px;
+      height: 116px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 30px 70px rgba(0, 0, 0, 0.95);
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+        box-shadow 0.4s ease,
+        filter 0.4s ease;
+    }
+
+    .avatar-wrapper:hover .avatar {
+      transform: scale(1.012);
+      box-shadow: 0 36px 80px rgba(0, 0, 0, 0.98), 0 0 0 1px rgba(255, 255, 255, 0.5);
+      filter: contrast(1.02);
+    }
+
+    /* User info */
+    .user-info {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 0.4rem;
+    }
+
+    .display-name {
+      font-size: clamp(1.7rem, 4vw, 2.1rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      text-shadow: 0 14px 50px rgba(0, 0, 0, 0.98);
+    }
+
+    .username {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.5);
+      background: transparent;
+      border: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      box-shadow: none;
+      letter-spacing: 0.18em;
+      text-transform: lowercase;
+      padding: 0;
+    }
+
+    /* Connections */
+    .connections {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      width: 100%;
+      margin-top: 0.1rem;
+    }
+
+    .connection-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      text-decoration: none;
+      color: rgba(255, 255, 255, 0.8);
+      background: radial-gradient(circle at top, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.06) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(calc(var(--blur) / 2));
+      -webkit-backdrop-filter: blur(calc(var(--blur) / 2));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        0 16px 36px rgba(0, 0, 0, 0.75);
+      transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1),
+        color 0.25s ease,
+        border-color 0.25s ease,
+        box-shadow 0.25s ease,
+        background 0.25s ease;
+    }
+
+    .connection-btn svg {
+      width: 17px;
+      height: 17px;
+    }
+
+    .connection-btn:hover {
+      color: #fff;
+      transform: translateY(-3px);
+      border-color: rgba(255, 255, 255, 0.38);
+      background: radial-gradient(circle at top, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.1) 100%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24),
+        0 22px 50px rgba(0, 0, 0, 0.88);
+    }
+
+    /* Music panel */
+    .music-panel {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding: 0.4rem 0 0;
+      border-radius: 0;
+      background: transparent;
+      border: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      box-shadow: none;
+      transition: none;
+    }
+
+    .music-panel:hover {
+      transform: none;
+      border-color: transparent;
+      box-shadow: none;
+    }
+
+    .track-info-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    /* Equalizer */
+    .equalizer {
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+      height: 26px;
+    }
+
+    .equalizer-bar {
+      width: 4px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #fff 0%, rgba(255, 255, 255, 0.6) 100%);
+      box-shadow: 0 0 16px rgba(255, 255, 255, 0.25);
+      animation: equalize 1.25s ease-in-out infinite;
+      transform-origin: bottom;
+    }
+
+    .equalizer-bar:nth-child(1) {
+      height: 40%;
+      animation-delay: 0s;
+    }
+
+    .equalizer-bar:nth-child(2) {
+      height: 90%;
+      animation-delay: 0.16s;
+    }
+
+    .equalizer-bar:nth-child(3) {
+      height: 60%;
+      animation-delay: 0.32s;
+    }
+
+    .equalizer-bar:nth-child(4) {
+      height: 80%;
+      animation-delay: 0.48s;
+    }
+
+    .equalizer-bar:nth-child(5) {
+      height: 48%;
+      animation-delay: 0.64s;
+    }
+
+    @keyframes equalize {
+
+      0%,
+      100% {
+        transform: scaleY(0.4);
+        opacity: 0.7;
+      }
+
+      50% {
+        transform: scaleY(1);
+        opacity: 1;
+      }
+    }
+
+    .track-text {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .track-name {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .track-artist {
+      font-size: 0.85rem;
+      color: var(--text-tertiary);
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Progress */
+    .progress-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .progress-bar {
+      position: relative;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+      cursor: pointer;
+      overflow: visible;
+    }
+
+    .progress-bar:hover {
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    .progress-fill {
+      position: relative;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #fff 0%, rgba(255, 255, 255, 0.8) 100%);
+      box-shadow: 0 0 18px rgba(255, 255, 255, 0.4);
+      width: 0%;
+      transition: width 0.08s linear;
+    }
+
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      right: -6px;
+      top: 50%;
+      transform: translateY(-50%) scale(0.6);
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+      opacity: 0;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .progress-bar:hover .progress-fill::after {
+      opacity: 1;
+      transform: translateY(-50%) scale(1);
+    }
+
+    .time-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+    }
+
+    /* Volume */
+    .volume-row {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding-top: 0.8rem;
+      border-top: none;
+    }
+
+    .volume-icon {
+      width: 18px;
+      height: 18px;
+      opacity: 0.6;
+      transition: opacity 0.2s ease;
+    }
+
+    .volume-row:hover .volume-icon {
+      opacity: 0.9;
+    }
+
+    .volume-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(to right,
+          rgba(255, 255, 255, 0.9) var(--volume-progress, 30%),
+          rgba(255, 255, 255, 0.24) var(--volume-progress, 30%));
+      cursor: pointer;
+    }
+
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 18px rgba(255, 255, 255, 0.7);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .volume-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+      box-shadow: 0 0 24px rgba(255, 255, 255, 0.9);
+    }
+
+    .volume-slider::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border: none;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 18px rgba(255, 255, 255, 0.7);
+    }
+
+    .volume-slider::-moz-range-track {
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.24);
+    }
+
+    @media (max-width: 420px) {
+      .music-panel {
+        padding: 1.1rem 1.2rem 1rem;
+        border-radius: 22px;
+      }
+
+      .enter-text {
+        letter-spacing: 1.2em;
+        margin-right: -1.2em;
+      }
+
+      .connection-btn {
+        width: 40px;
+        height: 40px;
+      }
+
+      .connection-btn svg {
+        width: 17px;
+        height: 17px;
+      }
+    }
+  </style>
 </head>
+
 <body>
-<canvas id="rain-canvas"></canvas>
-
-<nav>
-  <div class="nav-logo">cxt</div>
-  <div class="nav-links">
-    <a href="#">explore</a>
-    <a href="dashboard.html" class="nav-btn">dashboard</a>
+  <!-- Enter overlay -->
+  <div id="enter-screen">
+    <span class="enter-text">enter</span>
   </div>
-</nav>
 
-<section class="hero">
-  <div class="hero-eyebrow">your link. your identity.</div>
-  <h1 class="hero-title">one link.<br><em>everything.</em></h1>
-  <p class="hero-sub">Claim your username and build a page that's actually yours. Music, socials, bio — all in one place.</p>
-  <div class="claim-box">
-    <span class="claim-prefix">cxt.lol/</span>
-    <input class="claim-input" id="claim-input" type="text" placeholder="yourname" autocomplete="off" spellcheck="false" maxlength="24">
-    <button class="claim-btn" id="claim-btn">Claim →</button>
-  </div>
-  <div class="claim-err" id="claim-err"></div>
-  <div class="claim-note" id="claim-note">free forever · no credit card</div>
-</section>
+  <!-- Background media -->
+  <video id="bg-video" autoplay loop muted playsinline>
+    <source src="https://files.catbox.moe/x4z13k.mp4" type="video/mp4">
+  </video>
 
-<div class="stats-row">
-  <div class="stat"><div class="stat-num" id="s-users">—</div><div class="stat-label">profiles</div></div>
-  <div class="stat"><div class="stat-num">1</div><div class="stat-label">link needed</div></div>
-  <div class="stat"><div class="stat-num">∞</div><div class="stat-label">customization</div></div>
-</div>
-
-<section class="features">
-  <div class="feat-grid">
-    <div class="feat-cell">
-      <div class="feat-icon">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+  <!-- Profile content -->
+  <main id="main-content">
+    <div class="profile-card">
+      <div class="avatar-wrapper">
+        <img id="discord-avatar" class="avatar" src="" alt="Profile avatar" loading="lazy">
       </div>
-      <div class="feat-title">Claim your slug</div>
-      <div class="feat-desc">Get cxt.lol/yourname instantly. First come, first served.</div>
-    </div>
-    <div class="feat-cell">
-      <div class="feat-icon">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>
+
+      <div class="user-info">
+        <h1 class="display-name" id="discord-display">Loading...</h1>
+        <span class="username" id="discord-username">@loading</span>
       </div>
-      <div class="feat-title">Music player</div>
-      <div class="feat-desc">Embed your track with a waveform visualizer that reacts in real time.</div>
-    </div>
-    <div class="feat-cell">
-      <div class="feat-icon">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>
+
+      <div class="connections">
+        <a class="connection-btn" href="https://www.tiktok.com/@eury" target="_blank" rel="noopener noreferrer"
+          aria-label="TikTok">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path
+              d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
+          </svg>
+        </a>
+        <a class="connection-btn" href="https://www.instagram.com/hoconight" target="_blank" rel="noopener noreferrer"
+          aria-label="Instagram">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+            stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+          </svg>
+        </a>
       </div>
-      <div class="feat-title">Social links</div>
-      <div class="feat-desc">Discord, Twitter, Instagram — all surfaced cleanly with live status.</div>
+
+      <section class="music-panel" aria-label="Now playing">
+        <div class="track-info-row">
+          <div class="equalizer" id="eq-bars" aria-hidden="true">
+            <span class="equalizer-bar"></span>
+            <span class="equalizer-bar"></span>
+            <span class="equalizer-bar"></span>
+            <span class="equalizer-bar"></span>
+            <span class="equalizer-bar"></span>
+          </div>
+          <div class="track-text">
+            <div class="track-name">insta</div>
+            <div class="track-artist">luvfredo</div>
+          </div>
+        </div>
+
+        <div class="progress-wrapper">
+          <div class="progress-bar" id="progress-bar" role="slider" aria-label="Track progress" aria-valuemin="0"
+            aria-valuemax="100" tabindex="0">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+          <div class="time-row">
+            <span id="time-current">0:00</span>
+            <span id="time-total">0:00</span>
+          </div>
+        </div>
+
+        <div class="volume-row">
+          <svg class="volume-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+          </svg>
+          <input type="range" id="volume-slider" class="volume-slider" min="0" max="1" step="0.01" value="0.3"
+            aria-label="Volume">
+        </div>
+      </section>
     </div>
-    <div class="feat-cell">
-      <div class="feat-icon">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-      </div>
-      <div class="feat-title">Full customization</div>
-      <div class="feat-desc">Custom buttons, badges, fonts, colors, and CSS — with a live preview in the dashboard.</div>
-    </div>
-  </div>
-</section>
+  </main>
 
-<div class="profiles-strip">
-  <div class="strip-label">recently claimed</div>
-  <div class="profiles-scroll" id="recent-profiles">
-    <div class="profile-pill">loading...</div>
-  </div>
-</div>
+  <script>
+    (function () {
+      const bgVideo = document.getElementById('bg-video');
+      const enterScreen = document.getElementById('enter-screen');
+      const mainContent = document.getElementById('main-content');
 
-<footer>
-  <span>cxt © 2026</span>
-  <div style="display:flex;gap:1.5rem;"><a href="#">terms</a><a href="#">privacy</a><a href="dashboard.html">login</a></div>
-</footer>
+      const progressBar = document.getElementById('progress-bar');
+      const progressFill = document.getElementById('progress-fill');
+      const timeCurrent = document.getElementById('time-current');
+      const timeTotal = document.getElementById('time-total');
+      const volumeSlider = document.getElementById('volume-slider');
 
-<script>
-// Rain
-const cvs=document.getElementById('rain-canvas'),rctx=cvs.getContext('2d');
-let drops=[];
-function resize(){cvs.width=innerWidth;cvs.height=innerHeight;}resize();window.addEventListener('resize',resize);
-function mkDrops(){drops=[];for(let i=0;i<innerWidth/8;i++)drops.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,len:10+Math.random()*18,spd:10+Math.random()*12,op:0.05+Math.random()*0.1,w:0.5+Math.random()*0.6});}
-mkDrops();window.addEventListener('resize',mkDrops);
-const ANG=0.22;
-(function rain(){rctx.clearRect(0,0,cvs.width,cvs.height);for(const d of drops){rctx.save();rctx.globalAlpha=d.op;rctx.strokeStyle='#fff';rctx.lineWidth=d.w;rctx.beginPath();rctx.moveTo(d.x,d.y);rctx.lineTo(d.x+Math.sin(ANG)*d.len,d.y+Math.cos(ANG)*d.len);rctx.stroke();rctx.restore();d.y+=d.spd*0.33;d.x+=Math.sin(ANG)*d.spd*0.33*0.4;if(d.y>cvs.height+d.len){d.y=-d.len;d.x=Math.random()*cvs.width;}}requestAnimationFrame(rain);})();
+      const discordAvatar = document.getElementById('discord-avatar');
+      const discordDisplay = document.getElementById('discord-display');
+      const discordUsername = document.getElementById('discord-username');
 
-// Claim redirect with validation
-const claimInput=document.getElementById('claim-input');
-const claimBtn=document.getElementById('claim-btn');
-const claimErr=document.getElementById('claim-err');
+      const DISCORD_ID = '1509266673717346448';
+      const API_URL = `https://japi.rest/discord/v1/user/${DISCORD_ID}`;
 
-function validateClaim(v){
-  const cleaned=v.trim().toLowerCase().replace(/[^a-z0-9_]/g,'');
-  if(!cleaned){claimErr.textContent='';return '';}
-  if(cleaned.length>24){claimErr.textContent='Maximum 24 characters';return '';}
-  if(cleaned!==v.trim().toLowerCase()){claimErr.textContent='Only letters, numbers, and underscores';return '';}
-  claimErr.textContent='';
-  return cleaned;
-}
+      let lastDataHash = '';
+      let fetchInterval;
 
-claimBtn.addEventListener('click',()=>{
-  const v=claimInput.value.trim().toLowerCase();
-  const cleaned=validateClaim(v);
-  if(!cleaned)return;
-  claimBtn.disabled=true;
-  claimBtn.textContent='...';
-  window.location.href=`dashboard.html?claim=${encodeURIComponent(cleaned)}`;
-});
+      const formatTime = (seconds) => {
+        if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+      };
 
-claimInput.addEventListener('input',()=>{validateClaim(claimInput.value);});
-claimInput.addEventListener('keydown',e=>{if(e.key==='Enter')claimBtn.click();});
+      const updateVolumeVisual = (value) => {
+        const percent = (value * 100).toFixed(2) + '%';
+        volumeSlider.style.setProperty('--volume-progress', percent);
+      };
 
-// Supabase stats + recent
-const SUPA_URL='https://rpgtoebzburfzgjoavoj.supabase.co';
-const SUPA_KEY='sb_publishable__gbq2uFnqfe2aNaqP71smA_4e94Q5a6';
-
-if(location.protocol==='file:'){
-  document.getElementById('s-users').textContent='0';
-  document.getElementById('recent-profiles').innerHTML='<div class="profile-pill">deploy to GitHub Pages</div>';
-  document.querySelector('.claim-note').textContent='⚠️ Open via local server or GitHub Pages (file:// blocks network requests)';
-}
-
-async function loadStats(){
-  try{
-    const r=await fetch(`${SUPA_URL}/rest/v1/profiles?select=username,avatar_url,created_at&order=created_at.desc&limit=50`,{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Accept':'application/json'}});
-    if(!r.ok)throw new Error('Fetch failed');
-    const d=await r.json();
-    if(Array.isArray(d)){
-      const countEl=document.getElementById('s-users');
-      const strip=document.getElementById('recent-profiles');
-      countEl.textContent=d.length;
-      strip.innerHTML='';
-      if(d.length===0){strip.innerHTML='<div class="profile-pill">be the first</div>';return;}
-      d.forEach(p=>{
-        const el=document.createElement('div');
-        el.className='profile-pill';
-        const av=p.avatar_url?`<img src="${p.avatar_url}" alt="">`:``;
-        el.innerHTML=av+esc(p.username);
-        el.style.cursor='pointer';
-        el.addEventListener('click',()=>{const b=location.pathname.replace(/\/?[^/]*$/,'')+'/';window.open(b+p.username,'_blank');});
-        strip.appendChild(el);
+      // Video progress
+      bgVideo.addEventListener('timeupdate', () => {
+        if (!bgVideo.duration) return;
+        const progress = (bgVideo.currentTime / bgVideo.duration) * 100;
+        progressFill.style.width = `${progress}%`;
+        progressBar.setAttribute('aria-valuenow', String(Math.round(progress)));
+        timeCurrent.textContent = formatTime(bgVideo.currentTime);
+        timeTotal.textContent = formatTime(bgVideo.duration);
       });
-    }
-  }catch(e){
-    document.getElementById('s-users').textContent='0';
-    if(location.protocol==='file:'){
-      document.getElementById('recent-profiles').innerHTML='<div class="profile-pill">open via local server</div>';
-    } else {
-      document.getElementById('recent-profiles').innerHTML='<div class="profile-pill">could not load</div>';
-    }
-  }
-}
-function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
-loadStats();
-</script>
+
+      // Seek on click
+      progressBar.addEventListener('click', (event) => {
+        const rect = progressBar.getBoundingClientRect();
+        const ratio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
+        if (bgVideo.duration) {
+          bgVideo.currentTime = ratio * bgVideo.duration;
+        }
+      });
+
+      // Keyboard seek support
+      progressBar.addEventListener('keydown', (event) => {
+        if (!bgVideo.duration) return;
+        if (event.key === 'ArrowRight') {
+          bgVideo.currentTime = Math.min(bgVideo.duration, bgVideo.currentTime + 5);
+          event.preventDefault();
+        } else if (event.key === 'ArrowLeft') {
+          bgVideo.currentTime = Math.max(0, bgVideo.currentTime - 5);
+          event.preventDefault();
+        }
+      });
+
+      // Volume
+      bgVideo.volume = Number(volumeSlider.value);
+      updateVolumeVisual(bgVideo.volume);
+
+      volumeSlider.addEventListener('input', (event) => {
+        const value = Number(event.target.value);
+        bgVideo.volume = value;
+        updateVolumeVisual(value);
+      });
+
+      // Enter
+      enterScreen.addEventListener('click', () => {
+        bgVideo.muted = false;
+        bgVideo.volume = Number(volumeSlider.value);
+        updateVolumeVisual(bgVideo.volume);
+
+        const playPromise = bgVideo.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => { });
+        }
+
+        enterScreen.classList.add('fade-out');
+        setTimeout(() => {
+          enterScreen.style.display = 'none';
+        }, 1400);
+
+        requestAnimationFrame(() => {
+          mainContent.classList.add('show');
+        });
+      }, { once: true });
+
+      // Discord profile
+      const fetchDiscordProfile = async () => {
+        try {
+          const response = await fetch(API_URL, { cache: 'no-store' });
+          if (!response.ok) throw new Error('Failed to fetch');
+          const json = await response.json();
+
+          if (json?.data) {
+            const user = json.data;
+            const hash = JSON.stringify({
+              g: user.global_name,
+              u: user.username,
+              a: user.avatar,
+              id: user.id
+            });
+
+            if (hash === lastDataHash) return;
+            lastDataHash = hash;
+
+            const displayName = user.global_name || user.username || 'unknown';
+            discordDisplay.textContent = displayName;
+            discordUsername.textContent = `@${user.username || 'user'}`;
+
+            let avatarUrl = '';
+            if (user.avatar) {
+              const isGif = user.avatar.startsWith('a_');
+              avatarUrl = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${isGif ? 'gif' : 'png'}?size=512`;
+            } else {
+              const defaultIndex = (BigInt(user.id) >> 22n) % 6n;
+              avatarUrl = `https://cdn.discordapp.com/embed/avatars/${Number(defaultIndex)}.png`;
+            }
+
+            if (discordAvatar.src !== avatarUrl) {
+              discordAvatar.src = avatarUrl;
+            }
+          } else {
+            if (!lastDataHash) {
+              discordDisplay.textContent = 'user not found';
+              discordUsername.textContent = '@unknown';
+            }
+          }
+        } catch (error) {
+          if (!lastDataHash) {
+            discordDisplay.textContent = 'offline';
+            discordUsername.textContent = '@unknown';
+          }
+        }
+      };
+
+      discordAvatar.addEventListener('error', function () {
+        if (this.src.includes('embed/avatars')) return;
+        this.src = 'https://cdn.discordapp.com/embed/avatars/0.png';
+      });
+
+      fetchDiscordProfile();
+      fetchInterval = setInterval(fetchDiscordProfile, 1000);
+
+      window.addEventListener('beforeunload', () => {
+        clearInterval(fetchInterval);
+      });
+    })();
+  </script>
 </body>
+
 </html>
