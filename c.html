@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cxt — claim your page</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box;}
+  :root{--bg:#000;--fg:#fff;--muted:rgba(255,255,255,0.35);--border:rgba(255,255,255,0.08);--panel:rgba(255,255,255,0.04);}
+  body{background:radial-gradient(ellipse at 50% 20%, rgba(255,255,255,0.04) 0%, transparent 60%),var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-serif;min-height:100vh;overflow-x:hidden;}
+
+  #rain-canvas{position:fixed;inset:0;pointer-events:none;z-index:0;}
+
+  nav{position:fixed;top:0;left:0;right:0;z-index:50;padding:1.2rem 2.5rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(0,0,0,0.6);backdrop-filter:blur(20px);}
+  .nav-logo{font-size:1.1rem;font-weight:700;letter-spacing:-0.02em;}
+  .nav-links{display:flex;align-items:center;gap:1.5rem;}
+  .nav-links a{color:var(--muted);text-decoration:none;font-size:0.82rem;font-weight:500;letter-spacing:0.02em;transition:color 0.2s;}
+  .nav-links a:hover{color:var(--fg);}
+  .nav-btn{background:var(--fg);color:#000;padding:0.45rem 1.1rem;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;transition:opacity 0.2s;}
+  .nav-btn:hover{opacity:0.85;}
+
+  .hero{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6rem 1.5rem 4rem;}
+  .hero-eyebrow{font-size:0.72rem;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:1.8rem;}
+  .hero-title{font-size:clamp(3rem,8vw,6.5rem);font-weight:900;letter-spacing:-0.04em;line-height:0.95;margin-bottom:1.5rem;}
+  .hero-title em{font-style:normal;color:var(--muted);}
+  .hero-sub{font-size:1rem;color:var(--muted);max-width:420px;line-height:1.65;margin-bottom:2.8rem;}
+
+  .claim-box{display:flex;align-items:center;gap:0;border:1px solid rgba(255,255,255,0.18);border-radius:12px;overflow:hidden;background:rgba(255,255,255,0.03);backdrop-filter:blur(10px);max-width:400px;width:100%;}
+  .claim-prefix{padding:0 0.2rem 0 1rem;color:var(--muted);font-size:0.9rem;white-space:nowrap;user-select:none;}
+  .claim-input{flex:1;background:transparent;border:none;outline:none;color:var(--fg);font-size:0.9rem;font-family:inherit;padding:0.85rem 0.5rem;min-width:0;}
+  .claim-input::placeholder{color:rgba(255,255,255,0.18);}
+  .claim-btn{background:var(--fg);color:#000;border:none;padding:0.85rem 1.3rem;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:opacity 0.2s;}
+  .claim-btn:hover{opacity:0.88;}
+  .claim-btn:disabled{opacity:0.3;cursor:not-allowed;}
+  .claim-note{font-size:0.72rem;color:rgba(255,255,255,0.2);margin-top:0.8rem;}
+  .claim-err{font-size:0.72rem;color:#ff6b6b;margin-top:0.5rem;min-height:1em;}
+
+  .stats-row{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:4rem;padding:3rem 1.5rem;border-top:1px solid var(--border);}
+  .stat{text-align:center;}
+  .stat-num{font-size:1.8rem;font-weight:800;letter-spacing:-0.03em;}
+  .stat-label{font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-top:0.2rem;}
+
+  .features{position:relative;z-index:1;padding:5rem 1.5rem;max-width:900px;margin:0 auto;}
+  .feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1px;border:1px solid var(--border);}
+  .feat-cell{padding:2rem;border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
+  .feat-cell:nth-child(2n){border-right:none;}
+  .feat-icon{width:32px;height:32px;border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:1rem;opacity:0.6;}
+  .feat-title{font-size:0.9rem;font-weight:600;margin-bottom:0.4rem;}
+  .feat-desc{font-size:0.78rem;color:var(--muted);line-height:1.6;}
+
+  .profiles-strip{position:relative;z-index:1;padding:4rem 1.5rem;text-align:center;}
+  .strip-label{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.14em;color:var(--muted);margin-bottom:2rem;}
+  .profiles-scroll{display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;}
+  .profile-pill{padding:0.35rem 0.9rem;border:1px solid var(--border);border-radius:99px;font-size:0.75rem;color:var(--muted);transition:all 0.2s;display:inline-flex;align-items:center;gap:.45rem;}
+  .profile-pill:hover{border-color:rgba(255,255,255,0.25);color:var(--fg);}
+  .profile-pill img{width:18px;height:18px;border-radius:50%;object-fit:cover;border:1px solid var(--border);}
+
+  footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:1.8rem 2.5rem;display:flex;align-items:center;justify-content:space-between;font-size:0.72rem;color:rgba(255,255,255,0.2);}
+  footer a{color:inherit;text-decoration:none;}footer a:hover{color:var(--fg);}
+
+  @media(max-width:600px){nav{padding:1rem 1.2rem;}.nav-links{gap:0.8rem;}.stats-row{gap:2rem;}.hero-title{font-size:clamp(2.2rem,12vw,3.5rem);}footer{flex-direction:column;gap:0.6rem;text-align:center;}}
+  @media(max-width:480px){.claim-box{flex-wrap:wrap;}.claim-btn{width:100%;text-align:center;}}
+</style>
+</head>
+<body>
+<canvas id="rain-canvas"></canvas>
+
+<nav>
+  <div class="nav-logo">cxt</div>
+  <div class="nav-links">
+    <a href="#">explore</a>
+    <a href="dashboard.html" class="nav-btn">dashboard</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-eyebrow">your link. your identity.</div>
+  <h1 class="hero-title">one link.<br><em>everything.</em></h1>
+  <p class="hero-sub">Claim your username and build a page that's actually yours. Music, socials, bio — all in one place.</p>
+  <div class="claim-box">
+    <span class="claim-prefix">cxt.lol/</span>
+    <input class="claim-input" id="claim-input" type="text" placeholder="yourname" autocomplete="off" spellcheck="false" maxlength="24">
+    <button class="claim-btn" id="claim-btn">Claim →</button>
+  </div>
+  <div class="claim-err" id="claim-err"></div>
+  <div class="claim-note" id="claim-note">free forever · no credit card</div>
+</section>
+
+<div class="stats-row">
+  <div class="stat"><div class="stat-num" id="s-users">—</div><div class="stat-label">profiles</div></div>
+  <div class="stat"><div class="stat-num">1</div><div class="stat-label">link needed</div></div>
+  <div class="stat"><div class="stat-num">∞</div><div class="stat-label">customization</div></div>
+</div>
+
+<section class="features">
+  <div class="feat-grid">
+    <div class="feat-cell">
+      <div class="feat-icon">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div class="feat-title">Claim your slug</div>
+      <div class="feat-desc">Get cxt.lol/yourname instantly. First come, first served.</div>
+    </div>
+    <div class="feat-cell">
+      <div class="feat-icon">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>
+      </div>
+      <div class="feat-title">Music player</div>
+      <div class="feat-desc">Embed your track with a waveform visualizer that reacts in real time.</div>
+    </div>
+    <div class="feat-cell">
+      <div class="feat-icon">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>
+      </div>
+      <div class="feat-title">Social links</div>
+      <div class="feat-desc">Discord, Twitter, Instagram — all surfaced cleanly with live status.</div>
+    </div>
+    <div class="feat-cell">
+      <div class="feat-icon">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      </div>
+      <div class="feat-title">Full customization</div>
+      <div class="feat-desc">Custom buttons, badges, fonts, colors, and CSS — with a live preview in the dashboard.</div>
+    </div>
+  </div>
+</section>
+
+<div class="profiles-strip">
+  <div class="strip-label">recently claimed</div>
+  <div class="profiles-scroll" id="recent-profiles">
+    <div class="profile-pill">loading...</div>
+  </div>
+</div>
+
+<footer>
+  <span>cxt © 2026</span>
+  <div style="display:flex;gap:1.5rem;"><a href="#">terms</a><a href="#">privacy</a><a href="dashboard.html">login</a></div>
+</footer>
+
+<script>
+// Rain
+const cvs=document.getElementById('rain-canvas'),rctx=cvs.getContext('2d');
+let drops=[];
+function resize(){cvs.width=innerWidth;cvs.height=innerHeight;}resize();window.addEventListener('resize',resize);
+function mkDrops(){drops=[];for(let i=0;i<innerWidth/8;i++)drops.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,len:10+Math.random()*18,spd:10+Math.random()*12,op:0.05+Math.random()*0.1,w:0.5+Math.random()*0.6});}
+mkDrops();window.addEventListener('resize',mkDrops);
+const ANG=0.22;
+(function rain(){rctx.clearRect(0,0,cvs.width,cvs.height);for(const d of drops){rctx.save();rctx.globalAlpha=d.op;rctx.strokeStyle='#fff';rctx.lineWidth=d.w;rctx.beginPath();rctx.moveTo(d.x,d.y);rctx.lineTo(d.x+Math.sin(ANG)*d.len,d.y+Math.cos(ANG)*d.len);rctx.stroke();rctx.restore();d.y+=d.spd*0.33;d.x+=Math.sin(ANG)*d.spd*0.33*0.4;if(d.y>cvs.height+d.len){d.y=-d.len;d.x=Math.random()*cvs.width;}}requestAnimationFrame(rain);})();
+
+// Claim redirect with validation
+const claimInput=document.getElementById('claim-input');
+const claimBtn=document.getElementById('claim-btn');
+const claimErr=document.getElementById('claim-err');
+
+function validateClaim(v){
+  const cleaned=v.trim().toLowerCase().replace(/[^a-z0-9_]/g,'');
+  if(!cleaned){claimErr.textContent='';return '';}
+  if(cleaned.length>24){claimErr.textContent='Maximum 24 characters';return '';}
+  if(cleaned!==v.trim().toLowerCase()){claimErr.textContent='Only letters, numbers, and underscores';return '';}
+  claimErr.textContent='';
+  return cleaned;
+}
+
+claimBtn.addEventListener('click',()=>{
+  const v=claimInput.value.trim().toLowerCase();
+  const cleaned=validateClaim(v);
+  if(!cleaned)return;
+  claimBtn.disabled=true;
+  claimBtn.textContent='...';
+  window.location.href=`dashboard.html?claim=${encodeURIComponent(cleaned)}`;
+});
+
+claimInput.addEventListener('input',()=>{validateClaim(claimInput.value);});
+claimInput.addEventListener('keydown',e=>{if(e.key==='Enter')claimBtn.click();});
+
+// Supabase stats + recent
+const SUPA_URL='https://rpgtoebzburfzgjoavoj.supabase.co';
+const SUPA_KEY='sb_publishable__gbq2uFnqfe2aNaqP71smA_4e94Q5a6';
+
+if(location.protocol==='file:'){
+  document.getElementById('s-users').textContent='0';
+  document.getElementById('recent-profiles').innerHTML='<div class="profile-pill">deploy to GitHub Pages</div>';
+  document.querySelector('.claim-note').textContent='⚠️ Open via local server or GitHub Pages (file:// blocks network requests)';
+}
+
+async function loadStats(){
+  try{
+    const r=await fetch(`${SUPA_URL}/rest/v1/profiles?select=username,avatar_url,created_at&order=created_at.desc&limit=50`,{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Accept':'application/json'}});
+    if(!r.ok)throw new Error('Fetch failed');
+    const d=await r.json();
+    if(Array.isArray(d)){
+      const countEl=document.getElementById('s-users');
+      const strip=document.getElementById('recent-profiles');
+      countEl.textContent=d.length;
+      strip.innerHTML='';
+      if(d.length===0){strip.innerHTML='<div class="profile-pill">be the first</div>';return;}
+      d.forEach(p=>{
+        const el=document.createElement('div');
+        el.className='profile-pill';
+        const av=p.avatar_url?`<img src="${p.avatar_url}" alt="">`:``;
+        el.innerHTML=av+esc(p.username);
+        el.style.cursor='pointer';
+        el.addEventListener('click',()=>{const b=location.pathname.replace(/\/?[^/]*$/,'')+'/';window.open(b+p.username,'_blank');});
+        strip.appendChild(el);
+      });
+    }
+  }catch(e){
+    document.getElementById('s-users').textContent='0';
+    if(location.protocol==='file:'){
+      document.getElementById('recent-profiles').innerHTML='<div class="profile-pill">open via local server</div>';
+    } else {
+      document.getElementById('recent-profiles').innerHTML='<div class="profile-pill">could not load</div>';
+    }
+  }
+}
+function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
+loadStats();
+</script>
+</body>
+</html>
